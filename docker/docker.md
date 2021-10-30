@@ -193,3 +193,81 @@ ENTRYPOINT ["redis-server", "/usr/local/redis/conf/redis.conf"]
 - run `docker run --name some-mysql -e MYSQL_ROOT_PASSWORD=my-secret-pw -d mysql:tag` to run docker
 
 
+
+# Network of docker
+## How to check network settings of docker
+`docker network ls`
+there are 3 network mode - bridge, host, none
+## Bridge
+- When docker service starts, a virtual network adapter is created, called bridge0
+- When a container starts, it is connected to bridge0
+- bridge0 is connected to network adapter of computer by NAT(Network Address Translation, see https://en.wikipedia.org/wiki/Network_address_translation)
+
+## Host
+- Docker service and containers won't have their own IP and port, they use the host's.
+- Host mode has better performance in network. But containers may conflict when using ports.
+
+## None
+- Containers has no IP and port. It is disconnected from network. Usually used when testing.
+
+## Single direction communication with Link
+- normally, container A will be able to access network of container B
+- Situation: several Tomcat8 server will connect to one mysql db @ 173.0.0.5. But mysql db is down for some reason. After restart, mysql IP is 173.0.0.10.
+Then we have to modify config code of Tomcat8 to change to 173.0.0.10
+- Solution: Docker provide a better solution - link.  
+- First, start mysql with name mydb `docker run -itd mysql --name=mydb /bin/bash`
+- Then, start other contains with `docker run -itd tomcat8 --link mydb`
+- This will link addr `mydb` in tomcat8 to container named `mydb`. You can use `ping mydb` in tomcat8 containers to reach MySQL.
+- But in mydb, you cannot access tomcat8. Because link is single direction.
+
+## Double direction communication with bridge 
+- Create a bridge with `docker network create -d bridge my_bridge`
+- Connect tomcat to bridge `docker network connect my_bridge tomcat`
+- Connect mydb to bridge `docker network connect my_bridge mydb`
+- Then in tomcat you can use `ping mydb`, and in mydb, you can use `ping tomcat`
+
+
+# Docker compose
+## Installation
+- Follow instructios here `https://docs.docker.com/compose/install/`
+
+## Study later ... Remaining content is less useful
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
